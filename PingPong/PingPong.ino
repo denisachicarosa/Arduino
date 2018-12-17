@@ -256,7 +256,7 @@ void loop() {
     moveTab();
       for (int i = 0; i < 8; i++){
         lc.setRow(0, i, play[i]);
-  
+    
       }
   }
   }
