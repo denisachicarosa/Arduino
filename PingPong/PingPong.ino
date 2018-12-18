@@ -5,7 +5,7 @@
 #define SECOND_PLAYER_PIN A5
 #define interval 250
 #define potSignal 100
-#define ballMovingTime 2000
+#define ballMovingTime 750
 LiquidCrystal lcd(4, 5, 6, 7, 8, 13);
 
 
@@ -108,9 +108,9 @@ class Player : public Tab{
         previousValue = currentValue;
       }
       previousMillis = currentMillis;
-      if(pos == maxLeft || pos == maxRight){
-       previousValue = currentValue;
-      }
+     // if(pos == maxLeft || pos == maxRight){
+       //previousValue = currentValue;
+      //}
     }
   }
   
@@ -125,17 +125,19 @@ class Ball {
   byte maxRight = { B00000001 };
   public:
   Ball() {
-    pos = {B00001000};
     line = 4;
+    column = 3;
+    pos = 1<<column;
     dirL = 1; 
     dirC = 1;
     previousMillis = 0;
   }
+  
   void ballInit(){
     pos = {B00001000};
     line = 4;
     dirL = 1; 
-    dirC = 1;
+    dirC = -1;
     previousMillis = 0;
   }
   
@@ -149,28 +151,37 @@ class Ball {
     long currentMillis = millis();
     if(currentMillis - previousMillis > ballMovingTime){
     line = line + dirL;
-    if(dirC > 0) pos = pos>>1;
-    else pos = pos<<1;
+    column = column + dirC;
+    pos = 1<<column;
     previousMillis = currentMillis;
     }
   }
-  byte getPos(){
+  
+  byte getPos() {
     return pos;
   }
-  byte getLine(){
+  
+  int getLine() {
     return line;
   }
-  void setDirL(int d){ dirL = d;}
-  void setDirC(int d){ dirC = d;}
-  void touchWall(){
+  
+  int getColumn() {
+    return column;
+  }
+  
+  void setDirL(int d) { dirL = d;}
+  
+  void setDirC(int d) { dirC = d;}
+  
+  void touchWall() {
     if(pos == maxLeft){
       if(dirL < 0)  dirC = -1;
       else
-      if(dirC < 0)  dirL = 1;
+      if(dirL > 0)  dirC = 1;
     }
     if(pos == maxRight){
       if(dirL < 0) {
-        dirL = -1;
+        //dirL = -1;
         dirC = -1;
       }
       else if(dirL > 0) 
@@ -212,7 +223,7 @@ class Game {
     bool start() {
       switch(state) {
         case 1: {
-          bool done;
+          bool done = false;
           done = player1.startGame(previousMillis1, previousValue1, arrow);
           if(done == true) {
             state = 2;
@@ -221,7 +232,7 @@ class Game {
           break;
         }
         case 2:{
-          bool done;
+          bool done = false;
           done = player2.startGame(previousMillis2, previousValue2, arrow);
           if(done == true) {
             state = 3;
@@ -273,9 +284,7 @@ class Game {
       //player2.moveTab(previousMillis2, previousValue2);
       player2.moveTab(c,d);
       previousMillis2= c;
-      previousValue2 = d;
-
-      
+      previousValue2 = d;     
       image[0] = player1.getPos();
       printMatrix();
       image[7] = player2.getPos();
@@ -283,13 +292,14 @@ class Game {
     }
     
     void updateBall() {
-      byte ballLine = ball.getLine();
-      image[ballLine]<<9;
+      int ballLine = ball.getLine();
+      image[ballLine]= B00000000;
       ball.moveBall();
       verifyBall();
       byte ballPosition = ball.getPos();
       ballLine = ball.getLine();
       image[ballLine] = ballPosition;
+      printMatrix();
     }
     
     void verifyBall(){
@@ -304,6 +314,7 @@ class Game {
       if(result == posp) {
         // the ball touched the paddle -> change direction
         ball.setDirL(1);
+        //ball.setDirL(ball.getDirL() * (-1));
         ball.setDirC(ball.getDirC() * (-1));
       }
       else {
@@ -347,7 +358,7 @@ class Game {
       if(player2.getScore() >= 3);
         win = 2;
         
-      winner(win);
+//      winner(win);
       phaseOne();
       player1.setPos(B00111100);
       player2.setPos(B00111100);
@@ -355,23 +366,24 @@ class Game {
       
       //replay();
     }
-    void winner(int win){
-      lcd.clear();
-      delay(50);
-      if(win == 1) {
-      lcd.setCursor(1,0);
-      lcd.print("Winner: First");
-      lcd.setCursor(0,1);
-      lcd.print("Rotate=replay");
-      }
-      else 
-        if(win == 2) {
-          lcd.setCursor(1,0);
-          lcd.print("Winner: Second");
-          lcd.setCursor(0,1);
-          lcd.print("Rotate=replay");
-      }
-    }
+//    void winner(int win){
+//      lcd.setCursor(0,0);
+//      lcd.clear();
+//      delay(50);
+//      if(win == 1) {
+//      lcd.setCursor(1,0);
+//      lcd.print("Winner: First");
+//      lcd.setCursor(0,1);
+//      lcd.print("Rotate=replay");
+//      }
+//      else 
+//        if(win == 2) {
+//          lcd.setCursor(1,0);
+//          lcd.print("Winner: Second");
+//          lcd.setCursor(0,1);
+//          lcd.print("Rotate=replay");
+//      }
+//    }
 //    void replay() {
 //      lcd.setCursor(0,0);
 //      if(index == 1) 
