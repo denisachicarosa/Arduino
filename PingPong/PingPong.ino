@@ -10,260 +10,222 @@ LiquidCrystal lcd(4, 5, 6, 7, 8, 13);
 
 LedControl lc = LedControl(12, 11, 10, 1);
 
-bool moved;
-bool start;
-bool gasit;
-long interval;
-long previousMillis;
-byte maxLeft = { B11110000 };
-byte maxRight = { B00001111 };
-
-int xs,ys;
-
-class 
-
-class ball {
-  int row,col;
-  int dirX, dirY;
-  int speed;
-  public:
-  ball(){
-    row = col = 3;
-    dirX = dirY = -1; 
-    }
-  ~ball() { row = col = 3; }
-  void moveBall(){
-    //right wall case
-    
-
-    //left wall case
-
-
-    //up tab/floor
-
-
-    //down tab
-
-    
-  }
-  int getRow() { return row; }
-  int getCol() { return col;}  
-};
-
-class tab{
-  byte pos = { B00111100 };
-  public:
-  tab(){}
-  tab(byte x) { pos = x;}
-  ~tab(){}
-  byte getPos(){ 
-    return pos;
-  }
-  void setPos(byte x){
-    pos = x;
-  }
-};
-
-class player{
-  int index;
-  int score;
-  tab paddle;
-  public:
-  player() {index = 0; score = 0; }
-  
-  ~player(){ index = 0; score = 0;}
-  int getScore() { return score; }
-  byte getPosition(){return paddle.getPos();}
-  void setPosition(byte x) { paddle.setPos(x); }
-};
-
-byte startImage[8] = {
-  B00000000,
-  B01100110,
-  B01100110,
-  B00000000,
-  B10000001,
-  B01000010,
-  B00100100,
-  B00011000
-};
-
-byte play[8] = {
-  B00111100,
-  B00000000,
-  B00000000,
-  B00010000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00111100,
-};
-
-ball b;
-player player1,player2;
-
-int i,j,previousValue;
-void setup() {
-    Serial.begin(9600);
-    lc.shutdown(0, false);
-    lc.setIntensity(0, 1);
-    lc.clearDisplay(0);    
-    playersNumber = 0;
-    lcd.begin(16, 12);
-    moved = false;
-    gasit  = false;
-    previousMillis = 0;
-    interval = 250;
-    start = false;
-    pinMode(A0, INPUT);
-    pinMode(A1, INPUT);
-    pinMode(V0_PIN, OUTPUT);
-    analogWrite(V0_PIN, 120);
-    i = 0; j = 1;
-    previousValue = 0;
-    lcd.setCursor(0,0);
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Welcome!");
-    lcd.setCursor(i,j);
-    xs=1; ys=0;
-    lcd.print("->");
-    lcd.setCursor(11,1);
-    lcd.print("START");
-}
-
-
-int val;
-
-void startGame1(){
-  
-  long currentMillis = millis();
-  val = analogRead(FIRST_PLAYER_PIN);
-  //Serial.println(val);
-  if(gasit==false){
-  if(currentMillis - previousMillis > 250){  
-  if(val > previousValue+50)  {
-    i++; previousValue=val;
-  }
-
+void lcdPrint(int i, int index) {
   lcd.setCursor(0,0);
-  lcd.print("Player One: ");
-  lcd.setCursor(i,j);
-  xs=1; ys=0;
+  if(index == 1) {
+    lcd.print("Player One: ");
+  else lcd.print("Player Two: ");
+  lcd.setCursor(i,1);
   lcd.print("->");
   lcd.setCursor(11,1);
-  lcd.print("START");
-  if(i>=11) {gasit = true; lcd.clear();
-            i = 14;
-            j = 1;
-            previousMillis = 0;
-            previousValue = 0;
-            lcd.print("Player Two: ");
-  lcd.setCursor(i,j);
-   xs=1; ys=0;
-  lcd.print("<-");
-  lcd.setCursor(0,1);
-  lcd.print("START");
-            }
-  }
-  }
+  lcd.print("START"); 
 }
 
-void startGame2(){
-  long currentMillis = millis();
-  val = analogRead(SECOND_PLAYER_PIN);
-  Serial.println(val);
-  if(start == false){
-  if(currentMillis - previousMillis > 250){  
-  if(val > previousValue+50)  {
-    i--; previousValue=val;
-  }
-  lcd.setCursor(0,0);
-  lcd.print("Player Two: ");
-  lcd.setCursor(i,j);
-   xs=1; ys=0;
-  lcd.print("<-");
-  lcd.setCursor(0,1);
-  lcd.print("START");
-  if(i<5) {
-    start = true; 
-    previousMillis = 0;
-    previousValue = 0;
-    lcd.clear();}
-  }
-  } 
-}
-
-void printScore(){
-  lcd.clear();
-  lcd.setCursor(5,0);
-  lcd.print("Score: ");
-  lcd.setCursor(2,1);
-  lcd.print("P1     :     P2");
-  lcd.setCursor(8,1);
-  lcd.print(player1.getScore());
-  lcd.clear();
-  lcd.setCursor(10,1);
-  lcd.print(player2.getScore());
+class Tab{
+ protected:
+  byte pos;
+  int PIN;
   
-}
+  public:
+  Tab(int potPin) { 
+      PIN = potPin;
+      pos = B00111100;
+    }
+    
+  Tab(byte x, int potPin) {
+      pos = x; 
+      PIN = potPin;
+      pos = B00111100;
+  }
+  
+  ~Tab() {}
+  
+  byte getPos() { 
+    return pos;
+  }
+  
+  int getPIN() { return PIN;}
+  
+  void setPos(byte x) {
+    pos = x;
+  }
+  
+  void setPIN(int pot) { PIN = pot; }
+};
 
-int currentValue;
-
-void moveTab(){
-  long currentMillis = millis();
- // currentValue = analogRead(FIRST_PLAYER_PIN);
-  if(currentMillis - previousMillis > interval){
-      if(currentValue - previousValue>150 && player1.getPosition() != maxLeft){
-        player1.setPosition(player1.getPosition()<<1);
-        play[0] = player1.getPosition();
-        previousValue=currentValue;
-        moved = true;
+class Player : public Tab{
+    int index;
+    int score;
+  public:
+    Player(int pin):Tab(pin) {
+    index = 0;
+    score = 0;
+  }
+  int getScore() { return score; }
+  
+  bool startGame(long& previousMillis, long& previousValue, int& i) {
+    long currentMillis = millis();
+    long currentValue = analogRead(getPIN());
+    if(currentMillis - previousMillis > 250) {
+      if(currentValue > previousValue + 50) {
+        i++;
+        previousValue = currentValue;
+       }
+     lcdPrint(i);
+     if(i > 11) {
+     lcd.clear();
+     return true;
       }
-      //currentValue = analogRead(FIRST_PLAYER_PIN);
-      else if(previousValue - currentValue>150&& player1.getPosition() != maxRight){
-        player1.setPosition(player1.getPosition()>>1);
-        play[0] = player1.getPosition();
-        moved = true;
+    }
+    return false;
+  }
+  
+  void moveTab(int previousMillis, int previousValue) {
+    
+    byte maxLeft = { B11110000 };
+    byte maxRight = { B00001111 };
+    long currentMillis = millis();
+    long currentValue = analogRead(PIN);
+    if(currentMillis - previousMillis > 250) {
+      if(currentValue - previousValue > 150 && pos != maxLeft) {
+        pos=pos<<1;
+        previousValue = currentValue;
+      }
+      else if(previousValue - currentValue > 150 && pos != maxRight) {
+        pos = pos>>1;
+        previousValue = currentValue;
       }
       previousMillis = currentMillis;
-      if(player1.getPosition() == maxLeft || player1.getPosition() == maxRight)
+      if(pos == maxLeft || pos == maxRight)
       previousValue = currentValue;
-   }
+    }
   }
   
+};
 
+class Ball {
+  byte position;
+  
+}
+
+class Game {
+  Player player1;
+  Player player2;
+  long previousValue, previousMillis;
+  byte image[8];
+  int arrow;
+  int state; // 1-> start player1, 2->start player2, 3->play the game
+  
+  public:
+    Game(): player1(FIRST_PLAYER_PIN),player2(SECOND_PLAYER_PIN) {
+      state = 1;
+      previousValue = previousMillis = 0;
+      arrow = 0;
+      byte img[8] = {
+        B00000000,
+        B01100110,
+        B00000000,
+        B00010000,
+        B00000000,
+        B10000001,
+        B01000010,
+        B00111100
+      };
+      for( int i = 0; i < 8; i++)
+        image[i] = img[i];
+      }
+    bool start() {
+      switch(state) {
+        case 1: {
+          bool done;
+          done = player1.startGame(previousMillis, previousValue, arrow);
+          if(done == true) {
+            state = 2;
+            previousMillis = previousValue = arrow = 0;
+          }
+          break;
+        }
+        case 2:{
+          bool done;
+          done = player2.startGame(previousMillis, previousValue, arrow);
+          if(done == true) {
+            state = 3;
+            previousMillis = previousValue = arrow = 0;
+            changeMatrix();
+          }
+          break;
+        }
+        case 3:{
+          //afiseaza scorul
+           break;
+        }
+      }
+      if(state == 3) return true;
+      return false;
+    }
+    
+    void printMatrix() {
+      for (int i = 0; i < 8; i++)
+        lc.setRow(0, i, image[i]);
+    }
+    
+    void phaseOne() {
+     byte img[8] = {
+        B00111100,
+        B00000000,
+        B00000000,
+        B00010000,
+        B00000000,
+        B00000000,
+        B00000000,
+        B00111100
+      }
+      for( int i = 0; i < 8; i++)
+        image[i] = img[i];
+    }
+    
+    void updatePlayers() {
+      player1.moveTab();
+      player2.moveTab();
+      image[0] = player1.getPos();
+      image[7] = player2.getPos();
+    }
+    
+    void updateBall() {
+      
+    }
+    void updateScore() {
+      
+    }
+    
+    
+};
+
+
+void setup() {
+  // put your setup code here, to run once:
+  lc.shutdown(0, false);
+  lc.setIntensity(0, 1);
+  lc.clearDisplay(0);
+  lcd.begin(16, 12);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(V0_PIN, OUTPUT);
+  analogWrite(V0_PIN, 120); 
+}
+
+Game pong;
+bool play = false;
 
 void loop() {
-  if(start == false){
-  for (int i = 0; i < 8; i++){
-        lc.setRow(0, i, startImage[i]);}
-  startGame1();
-  if(gasit == true) {
-      startGame2();
+  pong.printMatrix();
+  if(play == false)  {
+    play = pong.start();
   }
+  if(play == true) {
+    pong.updatePlayers();
+    pong.updateBall();
+    pong.updateScore();
   }
-  else
-  if(start == true){
-    printScore();
-    for (int i = 0; i < 8; i++){
-     lc.setRow(0, i, play[i]);
-    currentValue1 = analogRead(FIRST_PLAYER_PIN);
-    moveTab();
-   // previousValue=0;
-    currentValue2 = analogRead(SECOND_PLAYER_PIN);
-    Serial.println(currentValue);
-    moveTab();
-      for (int i = 0; i < 8; i++){
-        lc.setRow(0, i, play[i]);
-    
-      }
-  }
-  }
-  }
-
-
-
-
-  
+}
   
