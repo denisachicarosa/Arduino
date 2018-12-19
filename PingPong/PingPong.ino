@@ -5,11 +5,12 @@
 #define SECOND_PLAYER_PIN A5
 #define interval 250
 #define potSignal 40
-#define ballMovingTime 350
+#define ballMovingTime 450
 LiquidCrystal lcd(4, 5, 6, 7, 8, 13);
 
 
 LedControl lc = LedControl(12, 11, 10, 1);
+bool stopp = false;
 
 void lcdPrint(int i, int index) {
   lcd.setCursor(0,0);
@@ -68,7 +69,7 @@ class Player : public Tab{
     return *this;
   }
   int getScore() { return score; }
-  
+  void init() { score = 0; }
   bool startGame(long& previousMillis, long& previousValue, int& i) {
     long currentMillis = millis();
     long currentValue = analogRead(getPIN());
@@ -179,8 +180,8 @@ class Ball {
   
   void setDirC(int d) { dirC = d;}
   
-  void touchWall() {
-if(pos == maxLeft){
+  void touchBall() {
+    if(pos == maxLeft){
       dirC = -1;
       long randomDirection = random(-1,2);
       if(randomDirection == 0) randomDirection = 1;
@@ -203,6 +204,7 @@ class Game {
   Ball ball;
   byte image[8];
   int arrow;
+  int winner;
   int state; // 1-> start player1, 2->start player2, 3->play the game
   
   public:
@@ -210,6 +212,7 @@ class Game {
     long previousValue2, previousMillis2;
     Game(): player1(FIRST_PLAYER_PIN,1),player2(SECOND_PLAYER_PIN,2) {
       state = 1;
+      winner = 0;
       previousMillis1 = previousValue1 = 0;
       previousValue2 = previousMillis2 = 0;
       arrow = 0;
@@ -226,6 +229,22 @@ class Game {
       for( int i = 0; i < 8; i++)
         image[i] = img[i];
       }
+      void phaseZero(){
+        byte img[8] = {
+        B00000000,
+        B01100110,
+        B01100110,
+        B00000000,
+        B00000000,
+        B10000001,
+        B01000010,
+        B00111100
+      };
+      for( int i = 0; i < 8; i++)
+        image[i] = img[i];
+        printMatrix();
+      }
+        
     bool start() {
       switch(state) {
         case 1: {
@@ -358,52 +377,52 @@ class Game {
       lcd.setCursor(12,1);
       lcd.print(player2.getScore());
     }
-    
+    void winn(){
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("winner: ");
+        lcd.setCursor(2,1);
+        lcd.print(winner);
+    }
+
     void reset(){
-      int win;
-      if(player1.getScore() >= 3)
+      int win = 0;
+      if(player1.getScore() >= 6) {
         win = 1;
-      if(player2.getScore() >= 3);
+        winner = 1;
+        lcd.print(1);
+        lcd.clear();
+        stopp = true;
+      }
+      if(player2.getScore() >= 6){
         win = 2;
-        
+        winner = 2;
+        lcd.clear();
+        stopp = true;
+      }
 //      winner(win);
       phaseOne();
       player1.setPos(B00111100);
       player2.setPos(B00111100);
       ball.ballInit();
-      
+//      if(win != 0){
+//      phaseZero();
+//      stopp = true;
+//      }
       //replay();
     }
-//    void winner(int win){
-//      lcd.setCursor(0,0);
-//      lcd.clear();
-//      delay(50);
-//      if(win == 1) {
-//      lcd.setCursor(1,0);
-//      lcd.print("Winner: First");
-//      lcd.setCursor(0,1);
-//      lcd.print("Rotate=replay");
-//      }
-//      else 
-//        if(win == 2) {
-//          lcd.setCursor(1,0);
-//          lcd.print("Winner: Second");
-//          lcd.setCursor(0,1);
-//          lcd.print("Rotate=replay");
-//      }
-//    }
-//    void replay() {
-//      lcd.setCursor(0,0);
-//      if(index == 1) 
-//      lcd.print("Player One: ");
-//      else lcd.print("Player Two: ");
-//      lcd.setCursor(i,1);
-//      lcd.print("->");
-//      lcd.setCursor(10,1);
-//      lcd.print("REPLAY"); 
-//      
-//    }
+
+    void init() {
+      state = 1;
+      winner = 0;
+      previousMillis1 = previousValue1 = 0;
+      previousValue2 = previousMillis2 = 0;
+      arrow = 0;
+      player1.init();
+      player2.init();
+    }
 };
+
 
 
 void setup() {
@@ -419,10 +438,35 @@ void setup() {
  // Serial.begin(9600);
 }
 
+
 Game pong;
 bool play = false;
 
+void replay() {
+    int pot1, pot2;
+     byte img[8] = {
+        B00000000,
+        B01100110,
+        B01100110,
+        B00000000,
+        B00000000,
+        B10000001,
+        B01000010,
+        B00111100
+      };
+   for(int i = 0; i <8; i++)
+      lc.setRow(0, i, img[i]);
+      pot1 = analogRead(FIRST_PLAYER_PIN);
+      pot2 = analogRead(SECOND_PLAYER_PIN);
+    if(pot1 < 15 && pot2 < 15) {
+    play = false;
+    stopp = false;
+    pong.init();
+    }
+}
+
 void loop() {
+  if(stopp == false){
   pong.printMatrix();
   if(play == false)  {
     play = pong.start();
@@ -432,5 +476,11 @@ void loop() {
     pong.updatePlayers();
     pong.updateBall();
     pong.updateScore();
+  }
+  }
+  else {
+  //pong.phaseZero();
+  pong.winn();
+  replay();
   }
 }
