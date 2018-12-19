@@ -4,8 +4,8 @@
 #define FIRST_PLAYER_PIN A0
 #define SECOND_PLAYER_PIN A5
 #define interval 250
-#define potSignal 100
-#define ballMovingTime 750
+#define potSignal 40
+#define ballMovingTime 350
 LiquidCrystal lcd(4, 5, 6, 7, 8, 13);
 
 
@@ -134,10 +134,16 @@ class Ball {
   }
   
   void ballInit(){
-    pos = {B00001000};
+    column = 4;
+    pos = 1<<column;
     line = 4;
-    dirL = 1; 
-    dirC = -1;
+    int randomDirection;
+    randomDirection = random(-1,2);
+    if(randomDirection == 0) randomDirection = 1;
+    dirL=randomDirection;
+    randomDirection = random(-1,2);
+    if(randomDirection == 0) randomDirection = 1;
+    dirC=randomDirection;
     previousMillis = 0;
   }
   
@@ -174,20 +180,20 @@ class Ball {
   void setDirC(int d) { dirC = d;}
   
   void touchWall() {
-    if(pos == maxLeft){
-      if(dirL < 0)  dirC = -1;
-      else
-      if(dirL > 0)  dirC = 1;
+if(pos == maxLeft){
+      dirC = -1;
+      long randomDirection = random(-1,2);
+      if(randomDirection == 0) randomDirection = 1;
+      randomDirection = random(-1,2);
+      dirL = randomDirection;
     }
     if(pos == maxRight){
-      if(dirL < 0) {
-        //dirL = -1;
-        dirC = -1;
-      }
-      else if(dirL > 0) 
-      dirC = 1;
-      }
-  }
+     dirC = 1; 
+     long randomDirection = random(-1,2);
+     if(randomDirection == 0) randomDirection = -1;
+     dirL = randomDirection;
+     }
+  } 
   
 };
 
@@ -313,9 +319,10 @@ class Game {
       result = posb | posp;
       if(result == posp) {
         // the ball touched the paddle -> change direction
+        long randomDirection = random(-1,2);
         ball.setDirL(1);
         //ball.setDirL(ball.getDirL() * (-1));
-        ball.setDirC(ball.getDirC() * (-1));
+        ball.setDirC(randomDirection);
       }
       else {
         //the ball is out of bounds
@@ -332,7 +339,8 @@ class Game {
       if(result == posp) {
         // the ball touched the paddle -> change direction
         ball.setDirL(-1);
-        ball.setDirC(ball.getDirC() * (-1));
+        long randomDirection = random(-1,2);
+        ball.setDirC(randomDirection);
       }
       else {
         //the ball is out of bounds
@@ -426,4 +434,3 @@ void loop() {
     pong.updateScore();
   }
 }
-  
