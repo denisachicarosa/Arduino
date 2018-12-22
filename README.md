@@ -1,22 +1,14 @@
 **Ping-Pong Game** 
 
 Componente:
-
--Arduino Uno R3
-
--Breadboards x4
-
--LCD1602 Module
-
--8x8 Matrix display
-
--Potentiometers x2
-
--Matrix driver
-
--F-M cables
-
--Resistors
+- Arduino Uno R3
+- Breadboards x4
+- LCD1602 Module
+- 8x8 Matrix display
+- Potentiometers x2
+- Matrix driver
+- F-M cables
+- Resistors
 
 
 *Start*
