@@ -42,3 +42,4 @@ Dupa ce unul dintre jucatori a acumulat 6 puncte, jocul se incheie si pe LCD est
 ### *Replay*
 Pentru a ajunge inapoi la meniul de start, ambele potentiometre trebuie sa fie setate pe valoarea 0.
 
+Gasiti [aici](https://drive.google.com/open?id=1NfRior8KgMNvDu4v_wtmC3IF7S7RgskA) un demo al jocului.
