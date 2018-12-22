@@ -27,3 +27,18 @@ Regulile sunt aceleasi ca la jocul clasic de ping-pong.
 - Mingea se ciocneste de pereti si nu iese afara din tabla.
 - Mingea se poate deplasa pe linie dreapta de la un perete spre celalalt, iar ambii jucatori trebuie sa o urmareasca, directia de plecare fiind apoi aleatorie.
 
+### **Punctajul**
+Atunci cand unul dintre jucatori nu prinde mingea pe paleta, creste punctajul adversarului.
+
+Dupa cresterea punctajului, mingea este plasata la jumatatea tablei de joc si porneste intr-o directie aleatorie.
+
+Jocul se incheie cand unul dintre jucatori acumuleaza 6 puncte.
+
+Punctajul este in permanenta afisat pe LCD.
+
+### **Castigator**
+Dupa ce unul dintre jucatori a acumulat 6 puncte, jocul se incheie si pe LCD este anuntat castigatorul in formatul: winner: 1/2.
+
+### *Replay*
+Pentru a ajunge inapoi la meniul de start, ambele potentiometre trebuie sa fie setate pe valoarea 0.
+
